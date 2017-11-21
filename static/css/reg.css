@@ -15,3 +15,46 @@ html {
 .posts .post .read-more-link {
   margin-top: 1em;
 }
+
+.post .post-info {
+  margin: -0.5rem 0 0.5rem 0;
+}
+
+.post .post-info .post-date {
+  display: inline;
+  margin: 0;
+}
+
+.post .tags {
+  list-style: none;
+  padding: 0;
+}
+
+.post .tags li {
+  display: inline-block;
+  background: linear-gradient(#f7f7f7, #f0f0f0);
+  border-left: 1px solid #fcfcfc;
+  border-top: 1px solid #fcfcfc;
+  border-bottom: 1px solid #cccccc;
+  border-radius: 3px;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  margin-right: 5px;
+}
+
+.post .tags li a {
+  margin: -1px;
+  display: block;
+  padding: 2px 10px;
+  border-right: 5px solid #bf616a;
+  border-left: 2px solid transparent;
+  border-radius: 3px;
+  font-size: 0.8em;
+}
+
+.post .tags li a:hover {
+  background: #268bd2;
+  border-right-color: #268bd2;
+  text-decoration: none;
+  color: #fff;
+}

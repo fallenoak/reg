@@ -1,5 +1,6 @@
 +++
 title     = "WMO: Unified Rendering"
+author    = "fallenoak"
 date      = "2017-11-18T13:17:55-06:00"
 summary   = """\
             Dive into the unified WMO rendering path, first introduced in the Wrath of the Lich \
@@ -7,6 +8,8 @@ summary   = """\
             `SMOHeader->flags`. \
             """
 slug      = "unified-rendering"
+type      = "post"
+tags      = [ "WoW", "WMO" ]
 draft     = true
 +++
 

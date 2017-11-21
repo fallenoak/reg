@@ -7,3 +7,6 @@ pygmentsOptions = "linenos=table"
 [params]
   description = "Reverse Engineering Games"
   author = "fallenoak"
+
+[taxonomies]
+  tag = "tags"
