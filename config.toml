@@ -1,0 +1,9 @@
+baseURL = "https://reg.fallenoak.me"
+languageCode = "en-us"
+title = "REG"
+theme = "hyde"
+pygmentsOptions = "linenos=table"
+
+[params]
+  description = "Reverse Engineering Games"
+  author = "fallenoak"

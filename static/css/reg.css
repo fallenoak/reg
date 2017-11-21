@@ -1,0 +1,17 @@
+html {
+  font-size: 18px;
+}
+
+@media (min-width: 48em) {
+  body > .content.container {
+    max-width: 40rem;
+  }
+}
+
+.highlight pre {
+  white-space: pre;
+}
+
+.posts .post .read-more-link {
+  margin-top: 1em;
+}
