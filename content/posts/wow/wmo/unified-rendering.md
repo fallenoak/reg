@@ -1,12 +1,12 @@
 +++
-title     = "WMO Rendering: Unified Rendering"
+title     = "WMO: Unified Rendering"
 date      = "2017-11-18T13:17:55-06:00"
 summary   = """\
             Dive into the unified WMO rendering path, first introduced in the Wrath of the Lich \
             King beta. Unified rendering is used whenever the `F_UNIFIED` flag (`0x2`) is set in \
             `SMOHeader->flags`. \
             """
-slug      = "/wow/wmo-rendering/unified-rendering"
+slug      = "unified-rendering"
 draft     = true
 +++
 
