@@ -1,4 +1,4 @@
-baseURL = "https://reg.fallenoak.me"
+baseURL = "https://reg.fallenoak.me/"
 languageCode = "en-us"
 title = "REG"
 theme = "hyde"
