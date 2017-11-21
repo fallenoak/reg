@@ -20,6 +20,13 @@ html {
   margin-top: 0;
 }
 
+.post h2 {
+  margin-top: 1.5rem;
+  padding-bottom: 0.25rem;
+  border-bottom: 2px solid #ddd;
+  margin-bottom: 1.0rem;
+}
+
 .post .post-info {
   margin: -0.5rem 0 0.5rem 0;
 }
