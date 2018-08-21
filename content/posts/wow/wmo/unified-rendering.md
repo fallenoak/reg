@@ -10,7 +10,7 @@ summary   = """\
 slug      = "unified-rendering"
 type      = "post"
 tags      = [ "WoW", "WMO" ]
-draft     = true
+draft     = false
 +++
 
 <!-- 2016_11_22_11_00_32_139  -->
