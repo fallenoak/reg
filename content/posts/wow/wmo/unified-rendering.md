@@ -32,12 +32,13 @@ overly bright.
 Enter the unified rendering path.
 
 Unified rendering involves a new suite of shaders (suffixed with `U`) and a new single rendering
-function that replaces the `CMapObj::s_intFunc` and `CMapObj::s_extFunc` functions.
+function that replaces the previously separate `CMapObj::s_intFunc` and `CMapObj::s_extFunc`
+functions.
 
 In the unified rendering path, the ambient color term for interior batches is stored in
-`SMOHeader->ambColor`, and is not baked into the colors in the `MOCV` chunk. This permits vertex
-colors to be used with exterior and interior batches alike. Exterior batches simply ignore the
-color present in `SMOHeader->ambColor`.
+`SMOHeader->ambColor`, and is not baked into the vertex colors in the `MOCV` chunk. This permits
+vertex colors to be used with exterior and interior batches alike. Exterior batches simply ignore
+the color present in `SMOHeader->ambColor`.
 
 A full explanation of the unified rendering path follows.
 
@@ -45,7 +46,7 @@ Note: when illustrating the output of the unified rendering path, we'll stick to
 `ND_Human_Inn.wmo`. This WMO was introduced in Wrath of the Lich King, and is the stock human
 inn used in various settlements around Northrend.
 
-## Standard Lighting Formula
+## Lighting Formula
 
 Before diving into the guts of the rendering logic, let's take a look at the standard lighting
 formula used for WMOs:
@@ -57,27 +58,35 @@ lightColor.rgb *= matDiffuseColor.rgb;
 lightColor.rgb += vertexColor.rgb;
 lightColor.rgb  = saturate(lightColor.rgb + matEmissiveColor.rgb)
 
-{{< / highlight >}}
+{{< /highlight >}}
 
 This formula is found in the WMO vertex shaders, and its output is passed along to the WMO pixel
 shaders. Once in the pixel shader, `lightColor` is doubled prior to being multiplied against the
 sampled texture(s).
 
-- `dirFactor` is the typical `saturate(dot(normal, -dir))` you might see in any number of lighting
-  implementations.
+- `dirFactor` is the direct light factor. It determines the amount of the direct color term to
+  apply to the final light color. The value is calculated as `saturate(dot(normal, -dir))`, similar
+  to formulas found in any number of lighting implementations.
 
-- `ambColor` and `dirColor` are sourced from various places according to the appropriate lighting
-  mode for a given batch. See the lighting modes section below for more details.
+- `dirColor` is the direct color term. Like the ambient color term, the value has different sources
+  depending on the specific lighting mode used for a given batch. See the lighting modes section
+  below for more details.
 
-- `matDiffuseColor` is always set to `0xFF7F7F7F`; ie. `vec4(0.5, 0.5, 0.5, 1.0)`. Presumably, this
-  term is meant to permit the use of material-specific diffuse coloring, and the value is set to a
-  neutral default. I have yet to find logic that sets this value to something other than the default
-  in Wrath of the Lich King.
+- `ambColor` is the ambient color term. The value has different sources depending on the specific
+  lighting mode used for a given batch. See the lighting modes section below for more details.
 
-- `vertexColor` is the color present in the `MOCV` chunk.
+- `matDiffuseColor` is the material-specific diffuse color term. It is always set to
+  `vec4(0.5, 0.5, 0.5, 1.0)`. Presumably, this term is meant to permit the use of material-specific
+  diffuse coloring, and the value `vec4(0.5, 0.5, 0.5, 1.0)` is effectively a neutral default.
+  I have yet to find logic that sets this value to something other than the default in Wrath of the
+  Lich King.
 
-- `matEmissiveColor` is typically `vec3(0.0, 0.0, 0.0)`. When `SMOMaterial->flags` `F_SIDN` is set,
-  this constant ends up containing the `SMOMaterial->frameSidn` color.
+- `vertexColor` is the vertex color term. It originates from the `MOCV` chunk, although the client
+  has runtime logic to modify the values present on disk depending on certain flags.
+
+- `matEmissiveColor` is the material-specific emissive color term. It is typically set to
+  `vec3(0.0, 0.0, 0.0)`. When `SMOMaterial->flags` `F_SIDN` is set, this value is set the
+  `SMOMaterial->frameSidn` color.
 
 ## Lighting Modes
 
@@ -93,18 +102,18 @@ These conditionals are distilled into 4 distinct lighting modes:
 | `2`  | Window        | `DNInfo->lightInfo->windowDirColor` | `DNInfo->lightInfo->windowAmbColor` |
 | `3`  | Interior      | `vec3(0.0, 0.0, 0.0)`               | `SMOHeader->ambColor`               |
 
-- Unlit sets both `dirColor` and `ambColor` to zero, and effectively drops out the first part
+- **Unlit** sets both `dirColor` and `ambColor` to zero, and effectively drops out the first part
   of the lighting formula.
 
-- Exterior sets `dirColor` and `ambColor` to the standard exterior lighting colors found in
+- **Exterior** sets `dirColor` and `ambColor` to the standard exterior lighting colors found in
   `DayNight`. These colors are produced using the values present in the lighting tables in
   `DBFilesClient`.
 
-- Window sets `dirColor` and `ambColor` to a variation of the standard exterior lighting colors
+- **Window** sets `dirColor` and `ambColor` to a variation of the standard exterior lighting colors
   found in `DayNight`. This lighting mode can only be selected when rendering batches in interior
   groups. It is selected by setting `SMOMaterial->flags` `F_WINDOW`.
 
-- Interior sets `dirColor` to zero, and sources `ambColor` from `SMOHeader->ambColor`. This
+- **Interior** sets `dirColor` to zero, and sources `ambColor` from `SMOHeader->ambColor`. This is
   typically used to light interior batches.
 
 ## Rendering Loop
@@ -112,9 +121,9 @@ These conditionals are distilled into 4 distinct lighting modes:
 The core of the unified rendering path is a loop that iterates across all batches defined in the
 `MOBA` chunk for each WMO group.
 
-This loop branches depending on the batch type of the batch. Batches are broken into three types
-based on the count values from the `MOGP` header: `trans`, `int`, and `ext` (in that order). `int`
-and `ext` batches are handled together in one branch, while `trans` batches are handled separately.
+This loop branches depending on the batch's type. Batches are broken into three types based on the
+count values from the `MOGP` header: `trans`, `int`, and `ext` (in that order). `int` and `ext`
+batches are handled together in one branch, while `trans` batches are handled separately.
 
 {{< highlight c >}}
 
@@ -122,26 +131,26 @@ for (int batchIdx = 0; batchIdx < group->batchCount; batchIdx++) {
 
     SMOBatch *batch = group->batchList[batchIdx];
 
-    // shared rendering logic here
+    // common rendering logic
 
     if (batchIdx >= group->transBatchCount) {
 
-        // int / ext batch rendering logic here
+        // int / ext batch rendering logic
 
     } else {
 
-        // trans batch rendering logic here
+        // trans batch rendering logic
 
     }
 
 }
 
-{{< / highlight >}}
+{{< /highlight >}}
 
-## Shared Rendering Logic
+## Common Rendering Logic
 
 Before branching for batch type specific logic, the client sets up general rendering state that
-applies regardless of batch type.
+applies to all batches.
 
 WIP
 
@@ -153,14 +162,14 @@ batch types.
 {{< highlight c >}}
 
 // Exterior / Exterior Lit Groups
-// - SMOGroup::EXTERIOR:     0x08
-// - SMOGroup::EXTERIOR_LIT: 0x40
+// - SMOGroup::EXTERIOR      0x8
+// - SMOGroup::EXTERIOR_LIT  0x40
 if (group->flags & (SMOGroup::EXTERIOR | SMOGroup::EXTERIOR_LIT)) {
 
     int lightingMode;
 
     // Choose the lighting mode
-    // - F_UNLIT: 0x1
+    // - F_UNLIT  0x1
     if (material->flags & F_UNLIT) {
 
         // Unlit (0)
@@ -235,7 +244,7 @@ if (group->flags & (SMOGroup::EXTERIOR | SMOGroup::EXTERIOR_LIT)) {
 
 }
 
-{{< / highlight >}}
+{{< /highlight >}}
 
 Interestingly, despite still marking batches as `int` or `ext` batch types, the client does not use
 the batch type to determine whether it is interior or exterior. Rather, the client relies on the
