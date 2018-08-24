@@ -1,10 +1,10 @@
 html {
-  font-size: 18px;
+  font-size: 17px;
 }
 
 @media (min-width: 48em) {
   body > .content.container {
-    max-width: 40rem;
+    max-width: 42rem;
   }
 }
 
@@ -68,4 +68,8 @@ html {
   border-right-color: #268bd2;
   text-decoration: none;
   color: #fff;
+}
+
+.post table {
+  font-size: 0.9em;
 }
