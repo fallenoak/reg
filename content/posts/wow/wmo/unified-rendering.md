@@ -116,7 +116,7 @@ These conditionals are distilled into 4 distinct lighting modes:
 - **Interior** sets `dirColor` to zero, and sources `ambColor` from `SMOHeader->ambColor`. This is
   typically used to light interior batches.
 
-## Rendering Loop
+## Group Rendering Loop
 
 The core of the unified rendering path is a loop that iterates across all batches defined in the
 `MOBA` chunk for each WMO group.
@@ -127,22 +127,27 @@ batches are handled together in one branch, while `trans` batches are handled se
 
 {{< highlight c >}}
 
-for (int batchIdx = 0; batchIdx < group->batchCount; batchIdx++) {
+void CMapObj::RenderGroupUnified(CMapObjGroup* group, uint32_t frustumCount) {
+    // ... snip ...
 
-    SMOBatch *batch = group->batchList[batchIdx];
+    for (int batchIdx = 0; batchIdx < group->batchCount; batchIdx++) {
 
-    // common rendering logic
+        SMOBatch *batch = group->batchList[batchIdx];
 
-    if (batchIdx >= group->transBatchCount) {
+        // common rendering logic
 
-        // int / ext batch rendering logic
+        if (batchIdx >= group->transBatchCount) {
 
-    } else {
+            // int / ext batch rendering logic
 
-        // trans batch rendering logic
+        } else {
 
+            // trans batch rendering logic
+
+        }
     }
 
+    // ... snip ...
 }
 
 {{< /highlight >}}
@@ -156,17 +161,35 @@ WIP
 
 ## Int / Ext Batch Rendering Logic
 
-Now that the basics are out of the way, let's dive into the rendering logic for `int` and `ext`
+Now that the basics are out of the way, let's dive into the rendering logic for `int` / `ext`
 batch types.
+
+Within `int` / `ext` batch type rendering, there are two major branches: exterior and interior.
+
+Interestingly, although assets flagged for unified rendering still divide batches across `trans`,
+`int`, and `ext` batch types, the unified rendering path does not distinguish between `int` and
+`ext` batch types. Rather, the client relies on the presence or absence of group flags
+(`SMOGroup::EXTERIOR`, `SMOGroup::EXTERIOR_LIT`) to determine which branch to follow.
+
+| Branch   | Batch Type      | Group Flags                                  | Possible Lighting Modes |
+| -------- | --------------- | -------------------------------------------- | ----------------------- |
+| Exterior | `int` / `ext`   | <code>EXTERIOR &#124; EXTERIOR_LIT</code>    | Unlit, Exterior         |
+| Interior | `int` / `ext`   | <code>!(EXTERIOR &#124; EXTERIOR_LIT)</code> | Window, Interior        |
+
+### Exterior / Exterior Lit Groups
+
+The exterior branch within `int` / `ext` batch type rendering deals with batches in groups flagged
+as either `SMOGroup::EXTERIOR` (`0x8`) or `SMOGroup::EXTERIOR_LIT` (`0x40`).
 
 {{< highlight c >}}
 
-// Exterior / Exterior Lit Groups
-// - SMOGroup::EXTERIOR      0x8
-// - SMOGroup::EXTERIOR_LIT  0x40
+// SMOGroup::EXTERIOR      0x8
+// SMOGroup::EXTERIOR_LIT  0x40
 if (group->flags & (SMOGroup::EXTERIOR | SMOGroup::EXTERIOR_LIT)) {
 
-    int lightingMode;
+    // Exterior / Exterior Lit Groups
+
+    int32_t lightingMode;
 
     // Choose the lighting mode
     // - F_UNLIT  0x1
@@ -197,7 +220,7 @@ if (group->flags & (SMOGroup::EXTERIOR | SMOGroup::EXTERIOR_LIT)) {
 
         dword_CFBEB0 = 2;
 
-        DNInfo *dnInfo = DayNightGetInfo();
+        DNInfo* dnInfo = DayNightGetInfo();
 
         CShaderEffect::SetFogParams(
             dnInfo->fogInfo.start,
@@ -210,13 +233,35 @@ if (group->flags & (SMOGroup::EXTERIOR | SMOGroup::EXTERIOR_LIT)) {
 
     }
 
-// Interior Groups
 } else {
+
+    // Interior Groups (see below section)
+
+}
+
+{{< /highlight >}}
+
+### Interior Groups
+
+The interior branch within `int` / `ext` batch type rendering deals with batches in all remaining
+groups (ie. groups not flagged as `SMOGroup::EXTERIOR` or `SMOGroup::EXTERIOR_LIT`).
+
+{{< highlight c >}}
+
+// SMOGroup::EXTERIOR      0x8
+// SMOGroup::EXTERIOR_LIT  0x40
+if (group->flags & (SMOGroup::EXTERIOR | SMOGroup::EXTERIOR_LIT)) {
+
+    // Exterior / Exterior Lit Groups (see above section)
+
+} else {
+
+    // Interior Groups
 
     int lightingMode;
 
     // Choose the lighting mode
-    // - F_WINDOW: 0x20
+    // - F_WINDOW  0x20
     if (material->flags & F_WINDOW) {
 
         // Window (2)
@@ -245,10 +290,6 @@ if (group->flags & (SMOGroup::EXTERIOR | SMOGroup::EXTERIOR_LIT)) {
 }
 
 {{< /highlight >}}
-
-Interestingly, despite still marking batches as `int` or `ext` batch types, the client does not use
-the batch type to determine whether it is interior or exterior. Rather, the client relies on the
-group flags (`SMOGroup::EXTERIOR`, `SMOGroup::EXTERIOR_LIT`).
 
 WIP
 
