@@ -206,32 +206,13 @@ if (group->flags & (SMOGroup::EXTERIOR | SMOGroup::EXTERIOR_LIT)) {
     }
 
     // Set the lighting mode (dirColor, ambColor, etc)
-    CMapObjGroup::SetLighting(group, lightingMode);
+    CMapObj::SetLighting(group, lightingMode);
 
-    if (dword_CFBEA8) {
+    // Disable interior shadows
+    CMapObj::SetShadow(0);
 
-        dword_CFBEA8 = 0;
-        CShadowCache::SetShadowMapGenericInterior(0);
-        dword_D43010 = sub_873FF0();
-
-    }
-
-    if (dword_CFBEB0 != 2) {
-
-        dword_CFBEB0 = 2;
-
-        DNInfo* dnInfo = DayNightGetInfo();
-
-        CShaderEffect::SetFogParams(
-            dnInfo->fogInfo.start,
-            dnInfo->fogInfo.end,
-            dnInfo->fogInfo.fogRate,
-            dnInfo->fogInfo.color
-        );
-
-        CShaderEffect::SetFogEnabled(1);
-
-    }
+    // Set fog mode to exterior
+    CMapObj::SetFog(2);
 
 } else {
 
@@ -275,17 +256,13 @@ if (group->flags & (SMOGroup::EXTERIOR | SMOGroup::EXTERIOR_LIT)) {
     }
 
     // Set the lighting mode (dirColor, ambColor, etc)
-    CMapObjGroup::SetLighting(group, lightingMode);
+    CMapObj::SetLighting(group, lightingMode);
 
-    if (dword_CFBEA8 != 1) {
+    // Enable interior shadows
+    CMapObj::SetShadow(1);
 
-        dword_CFBEA8 = 1;
-        CShadowCache::SetShadowMapGenericInterior(1);
-        dword_D43010 = sub_873FF0() != 0;
-
-    }
-
-    sub_7A8440(v81);
+    // Set fog mode to v81
+    CMapObj::SetFog(v81);
 
 }
 
