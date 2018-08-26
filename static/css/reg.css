@@ -73,3 +73,11 @@ html {
 .post table {
   font-size: 0.9em;
 }
+
+.post .highlight > div:first-child {
+  padding-left: 1rem;
+}
+
+.post .highlight pre {
+  padding-left: 0;
+}
