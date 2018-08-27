@@ -2,9 +2,9 @@ html {
   font-size: 17px;
 }
 
-@media (min-width: 48em) {
+@media (min-width: 50em) {
   body > .content.container {
-    max-width: 42rem;
+    max-width: 46rem;
   }
 }
 
