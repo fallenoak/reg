@@ -212,7 +212,7 @@ if (group->flags & (SMOGroup::EXTERIOR | SMOGroup::EXTERIOR_LIT)) {
     CMapObj::SetShadow(0);
 
     // Set fog mode to exterior
-    CMapObj::SetFog(2);
+    CMapObj::SetFog(0x2);
 
 } else {
 
@@ -255,7 +255,7 @@ if (group->flags & (SMOGroup::EXTERIOR | SMOGroup::EXTERIOR_LIT)) {
 
     }
 
-    // Set the lighting mode (dirColor, ambColor, etc)
+    // Set lighting mode (dirColor, ambColor, etc)
     CMapObj::SetLighting(group, lightingMode);
 
     // Enable interior shadows
@@ -272,4 +272,128 @@ WIP
 
 ## Trans Batch Rendering Logic [#](#trans-rendering) {#trans-rendering}
 
-TODO
+`trans` type batches are rendered using two draw passes.
+
+WIP
+
+### Draw Pass 1
+
+{{< highlight cpp >}}
+
+// Disable interior shadows
+CMapObj::SetShadow(0);
+
+int32_t lightingMode;
+
+// Choose the lighting mode
+// - F_UNLIT   0x1
+// - F_WINDOW  0x20
+if (material->flags & F_UNLIT) {
+
+    // Unlit (0)
+    lightingMode = 0;
+
+} else if (material->flags & F_WINDOW) {
+
+    // Window (2)
+    lightingMode = 2;
+
+} else {
+
+    // Exterior (1)
+    lightingMode = 1;
+
+}
+
+// Set lighting mode (dirColor, ambColor, etc)
+CMapObj::SetLighting(group, lightingMode);
+
+// Set fog mode
+// - F_UNFOGGED  0x2
+if (material->flags & F_UNFOGGED) {
+
+    // Disable (0x0)
+    CMapObj::SetFog(0x0);
+
+} else {
+
+    // Exterior (0x2)
+    CMapObj::SetFog(0x2);
+
+}
+
+// Set blending mode to GxBlend_SrcAlphaOpaque
+if (g_theGxDevicePtr->unk1[981]) {
+    v83 = g_theGxDevicePtr->unk2[1595] + 144;
+
+    if (*v83 != 9) {
+        g_theGxDevicePtr->IRsDirty(GxRs_BlendingMode);
+        *v83 = 9;
+    }
+}
+
+CShaderEffect::SetAlphaRefDefault();
+
+CMapObj::SetShaders();
+
+// Draw batch
+v70 = {
+    3,
+    batch->startIndex,
+    batch->count,
+    batch->minIndex,
+    batch->maxIndex
+};
+
+g_theGxDevicePtr->vfptr->Unk43(&v70, 1);
+
+{{< /highlight >}}
+
+### Draw Pass 2
+
+{{< highlight cpp >}}
+
+// Set lighting mode to interior (dirColor, ambColor, etc)
+CMapObj::SetLighting(group, 3);
+
+// Set fog mode
+if (material->flags & F_UNFOGGED) {
+
+    // Disabled (0x0)
+    CMapObj::SetFog(0x0);
+
+} else {
+
+    CMapObj::SetFog(v81);
+
+}
+
+// Enable interior shadows
+CMapObj::SetShadow(1);
+
+// Set blending mode to GxBlend_InvSrcAlphaAdd
+if (g_theGxDevicePtr->unk1[981]) {
+    v21 = g_theGxDevicePtr->unk2[1595] + 144;
+
+    if (*v21 != 7) {
+        g_theGxDevicePtr->IRsDirty(GxRs_BlendingMode);
+        *v21 = 7;
+    }
+}
+
+CShaderEffect::SetAlphaRefDefault();
+
+CMapObj::SetShaders();
+
+// Draw batch
+v60 = {
+    3,
+    batch->startIndex,
+    batch->count,
+    batch->minIndex,
+    batch->maxIndex
+};
+
+g_theGxDevicePtr->vfptr->Unk43(&v60, 1);
+
+{{< /highlight >}}
