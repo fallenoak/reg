@@ -46,7 +46,7 @@ Note: when illustrating the output of the unified rendering path, we'll stick to
 `ND_Human_Inn.wmo`. This WMO was introduced in Wrath of the Lich King, and is the stock human
 inn used in various settlements around Northrend.
 
-## Lighting Formula
+## Lighting Formula [#](#lighting-formula) {#lighting-formula}
 
 Before diving into the guts of the rendering logic, let's take a look at the standard lighting
 formula used for WMOs:
@@ -88,7 +88,7 @@ sampled texture(s).
   `vec3(0.0, 0.0, 0.0)`. When `SMOMaterial->flags` `F_SIDN` is set, this value is set the
   `SMOMaterial->frameSidn` color.
 
-## Lighting Modes
+## Lighting Modes [#](#lighting-modes) {#lighting-modes}
 
 As mentioned above, depending on the conditionals in the unified render path, the client sources
 `dirColor` and `ambColor` from various places.
@@ -116,7 +116,7 @@ These conditionals are distilled into 4 distinct lighting modes:
 - **Interior** sets `dirColor` to zero, and sources `ambColor` from `SMOHeader->ambColor`. This is
   typically used to light interior batches.
 
-## Group Rendering Loop
+## Group Rendering Loop [#](#group-rendering-loop) {#group-rendering-loop}
 
 The core of the unified rendering path is a loop that iterates across all batches defined in the
 `MOBA` chunk for each WMO group.
@@ -152,14 +152,14 @@ void CMapObj::RenderGroupUnified(CMapObjGroup* group, uint32_t frustumCount) {
 
 {{< /highlight >}}
 
-## Common Rendering Logic
+## Common Rendering Logic [#](#common-rendering) {#common-rendering}
 
 Before branching for batch type specific logic, the client sets up general rendering state that
 applies to all batches.
 
 WIP
 
-## Int / Ext Batch Rendering Logic
+## Int / Ext Batch Rendering Logic [#](#int-ext-rendering) {#int-ext-rendering}
 
 Now that the basics are out of the way, let's dive into the rendering logic for `int` / `ext`
 batch types.
@@ -270,6 +270,6 @@ if (group->flags & (SMOGroup::EXTERIOR | SMOGroup::EXTERIOR_LIT)) {
 
 WIP
 
-## Trans Batch Rendering Logic
+## Trans Batch Rendering Logic [#](#trans-rendering) {#trans-rendering}
 
 TODO
