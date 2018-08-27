@@ -23,7 +23,12 @@ These manipulations are explained below.
 
 ## CMapObjGroup::FixColorVertexAlpha [#](#fix-color-vertex-alpha) {#fix-color-vertex-alpha}
 
-WIP
+If a WMO group is flagged with `SMOGroup::CVERTS` (`0x4`) and `SMOHeader->flags` **is not** flagged
+with `0x8`, the client triggers the `FixColorVertexAlpha` function shown below. This function is
+called from inside `CMapObjGroup::CreateOptionalDataPointers`, and only runs once per WMO group.
+
+The logic below matches the behavior of the Wrath of the Lich King client. Newer versions of the
+client contain different / additional logic.
 
 {{< highlight cpp >}}
 
