@@ -339,7 +339,7 @@ CShaderEffect::SetAlphaRefDefault();
 CMapObj::SetShaders();
 
 // Draw batch
-CGxBatch batch1 = {
+CGxBatch transBatchPass1 = {
     GxPrim_Triangles,
     batch->startIndex,
     batch->count,
@@ -347,7 +347,7 @@ CGxBatch batch1 = {
     batch->maxIndex
 };
 
-g_theGxDevicePtr->BufRender(&batch1, 1);
+g_theGxDevicePtr->BufRender(&transBatchPass1, 1);
 
 {{< /highlight >}}
 
@@ -389,7 +389,7 @@ CShaderEffect::SetAlphaRefDefault();
 CMapObj::SetShaders();
 
 // Draw batch
-CGxBatch batch2 = {
+CGxBatch transBatchPass2 = {
     GxPrim_Triangles,
     batch->startIndex,
     batch->count,
@@ -397,6 +397,6 @@ CGxBatch batch2 = {
     batch->maxIndex
 };
 
-g_theGxDevicePtr->BufRender(&batch2, 1);
+g_theGxDevicePtr->BufRender(&transBatchPass2, 1);
 
 {{< /highlight >}}
