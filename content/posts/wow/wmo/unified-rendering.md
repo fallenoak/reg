@@ -125,7 +125,7 @@ This loop branches depending on the batch's type. Batches are broken into three 
 count values from the `MOGP` header: `trans`, `int`, and `ext` (in that order). `int` and `ext`
 batches are handled together in one branch, while `trans` batches are handled separately.
 
-{{< highlight c >}}
+{{< highlight cpp >}}
 
 void CMapObj::RenderGroupUnified(CMapObjGroup* group, uint32_t frustumCount) {
 
@@ -146,6 +146,7 @@ void CMapObj::RenderGroupUnified(CMapObjGroup* group, uint32_t frustumCount) {
             // trans batch rendering logic
 
         }
+
     }
 
     // ... snip ...
@@ -178,49 +179,84 @@ Interestingly, although assets flagged for unified rendering still divide batche
 | Exterior | `int` / `ext`   | <code>EXTERIOR &#124; EXTERIOR_LIT</code>    | Unlit, Exterior         |
 | Interior | `int` / `ext`   | <code>!(EXTERIOR &#124; EXTERIOR_LIT)</code> | Window, Interior        |
 
-### Exterior / Exterior Lit Groups
-
-The exterior branch within `int` / `ext` batch type rendering deals with batches in groups flagged
-as either `SMOGroup::EXTERIOR` (`0x8`) or `SMOGroup::EXTERIOR_LIT` (`0x40`).
-
-{{< highlight c >}}
+{{< highlight cpp >}}
 
 // SMOGroup::EXTERIOR (0x8)
 // SMOGroup::EXTERIOR_LIT (0x40)
 if (group->flags & (SMOGroup::EXTERIOR | SMOGroup::EXTERIOR_LIT)) {
 
     // Exterior / Exterior Lit Groups
-
-    int32_t lightingMode;
-
-    // Choose the lighting mode
-    // F_UNLIT (0x1)
-    if (material->flags & F_UNLIT) {
-
-        // Unlit (0)
-        lightingMode = 0;
-
-    } else {
-
-        // Exterior (1)
-        lightingMode = 1;
-
-    }
-
-    // Set the lighting mode (dirColor, ambColor, etc)
-    CMapObj::SetLighting(group, lightingMode);
-
-    // Disable interior shadows
-    CMapObj::SetShadow(0);
-
-    // Set fog mode to exterior
-    CMapObj::SetFog(0x2);
+    // (see next sections)
 
 } else {
 
-    // Interior Groups (see below section)
+    // Interior Groups
+    // (see next sections)
 
 }
+
+// Set blending mode to mode specified by SMOMaterial
+if (g_theGxDevicePtr->unk1[981]) {
+
+    v41 = g_theGxDevicePtr->unk2[1595] + 144;
+
+    if (*v41 != material->blendMode) {
+
+        g_theGxDevicePtr->IRsDirty(GxRs_BlendingMode);
+        *v41 = material->blendMode;
+
+    }
+
+}
+
+CShaderEffect::SetAlphaRefDefault();
+
+CMapObj::SetShaders();
+
+// Draw batch
+CGxBatch intExtBatch = {
+    GxPrim_Triangles,
+    batch->startIndex,
+    batch->count,
+    batch->minIndex,
+    batch->maxIndex
+};
+
+g_theGxDevicePtr->BufRender(&intExtBatch, 1);
+
+{{< /highlight >}}
+
+### Exterior / Exterior Lit Groups
+
+The exterior branch within `int` / `ext` batch type rendering deals with batches in groups flagged
+as either `SMOGroup::EXTERIOR` (`0x8`) or `SMOGroup::EXTERIOR_LIT` (`0x40`).
+
+{{< highlight cpp >}}
+
+int32_t lightingMode;
+
+// Choose the lighting mode
+// F_UNLIT (0x1)
+if (material->flags & F_UNLIT) {
+
+    // Unlit (0)
+    lightingMode = 0;
+
+} else {
+
+    // Exterior (1)
+    lightingMode = 1;
+
+}
+
+// Set the lighting mode (dirColor, ambColor, etc)
+CMapObj::SetLighting(group, lightingMode);
+
+// Disable interior shadows (0)
+CMapObj::SetShadow(0);
+
+// Set fog mode to exterior (0x2)
+CMapObj::SetFog(0x2);
 
 {{< /highlight >}}
 
@@ -229,44 +265,32 @@ if (group->flags & (SMOGroup::EXTERIOR | SMOGroup::EXTERIOR_LIT)) {
 The interior branch within `int` / `ext` batch type rendering deals with batches in all remaining
 groups (ie. groups not flagged as `SMOGroup::EXTERIOR` or `SMOGroup::EXTERIOR_LIT`).
 
-{{< highlight c >}}
+{{< highlight cpp >}}
 
-// SMOGroup::EXTERIOR (0x8)
-// SMOGroup::EXTERIOR_LIT (0x40)
-if (group->flags & (SMOGroup::EXTERIOR | SMOGroup::EXTERIOR_LIT)) {
+int32_t lightingMode;
 
-    // Exterior / Exterior Lit Groups (see above section)
+// Choose the lighting mode
+// F_WINDOW (0x20)
+if (material->flags & F_WINDOW) {
+
+    // Window (2)
+    lightingMode = 2;
 
 } else {
 
-    // Interior Groups
-
-    int lightingMode;
-
-    // Choose the lighting mode
-    // F_WINDOW (0x20)
-    if (material->flags & F_WINDOW) {
-
-        // Window (2)
-        lightingMode = 2;
-
-    } else {
-
-        // Interior (3)
-        lightingMode = 3;
-
-    }
-
-    // Set lighting mode (dirColor, ambColor, etc)
-    CMapObj::SetLighting(group, lightingMode);
-
-    // Enable interior shadows
-    CMapObj::SetShadow(1);
-
-    // Set fog mode to v81
-    CMapObj::SetFog(v81);
+    // Interior (3)
+    lightingMode = 3;
 
 }
+
+// Set lighting mode (dirColor, ambColor, etc)
+CMapObj::SetLighting(group, lightingMode);
+
+// Enable interior shadows (1)
+CMapObj::SetShadow(1);
+
+// Set fog mode to v81
+CMapObj::SetFog(v81);
 
 {{< /highlight >}}
 
@@ -326,12 +350,16 @@ if (material->flags & F_UNFOGGED) {
 
 // Set blending mode to GxBlend_SrcAlphaOpaque
 if (g_theGxDevicePtr->unk1[981]) {
-    v83 = g_theGxDevicePtr->unk2[1595] + 144;
 
-    if (*v83 != 9) {
+    curBlend = g_theGxDevicePtr->unk2[1595] + 144;
+
+    if (*curBlend != GxBlend_SrcAlphaOpaque) {
+
         g_theGxDevicePtr->IRsDirty(GxRs_BlendingMode);
-        *v83 = 9;
+        *curBlend = GxBlend_SrcAlphaOpaque;
+
     }
+
 }
 
 CShaderEffect::SetAlphaRefDefault();
@@ -355,7 +383,7 @@ g_theGxDevicePtr->BufRender(&transBatchPass1, 1);
 
 {{< highlight cpp >}}
 
-// Set lighting mode to interior (dirColor, ambColor, etc)
+// Set lighting mode (dirColor, ambColor, etc) to interior (3)
 CMapObj::SetLighting(group, 3);
 
 // Set fog mode
@@ -371,17 +399,21 @@ if (material->flags & F_UNFOGGED) {
 
 }
 
-// Enable interior shadows
+// Enable interior shadows (1)
 CMapObj::SetShadow(1);
 
 // Set blending mode to GxBlend_InvSrcAlphaAdd
 if (g_theGxDevicePtr->unk1[981]) {
-    v21 = g_theGxDevicePtr->unk2[1595] + 144;
 
-    if (*v21 != 7) {
+    curBlend = g_theGxDevicePtr->unk2[1595] + 144;
+
+    if (*curBlend != GxBlend_InvSrcAlphaAdd) {
+
         g_theGxDevicePtr->IRsDirty(GxRs_BlendingMode);
-        *v21 = 7;
+        *curBlend = GxBlend_InvSrcAlphaAdd;
+
     }
+
 }
 
 CShaderEffect::SetAlphaRefDefault();
