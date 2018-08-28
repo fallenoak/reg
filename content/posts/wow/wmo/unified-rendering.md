@@ -337,7 +337,7 @@ CShaderEffect::SetAlphaRefDefault();
 CMapObj::SetShaders();
 
 // Draw batch
-v70 = {
+CGxBatch batch1 = {
     3,
     batch->startIndex,
     batch->count,
@@ -345,7 +345,7 @@ v70 = {
     batch->maxIndex
 };
 
-g_theGxDevicePtr->vfptr->Unk43(&v70, 1);
+g_theGxDevicePtr->BufRender(&batch1, 1);
 
 {{< /highlight >}}
 
@@ -386,7 +386,7 @@ CShaderEffect::SetAlphaRefDefault();
 CMapObj::SetShaders();
 
 // Draw batch
-v60 = {
+CGxBatch batch2 = {
     3,
     batch->startIndex,
     batch->count,
@@ -394,6 +394,6 @@ v60 = {
     batch->maxIndex
 };
 
-g_theGxDevicePtr->vfptr->Unk43(&v60, 1);
+g_theGxDevicePtr->BufRender(&batch2, 1);
 
 {{< /highlight >}}
