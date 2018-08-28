@@ -338,7 +338,7 @@ CMapObj::SetShaders();
 
 // Draw batch
 CGxBatch batch1 = {
-    3,
+    GxPrim_Triangles,
     batch->startIndex,
     batch->count,
     batch->minIndex,
@@ -387,7 +387,7 @@ CMapObj::SetShaders();
 
 // Draw batch
 CGxBatch batch2 = {
-    3,
+    GxPrim_Triangles,
     batch->startIndex,
     batch->count,
     batch->minIndex,
