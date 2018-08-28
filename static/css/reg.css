@@ -81,3 +81,7 @@ html {
 .post .highlight pre {
   padding-left: 0;
 }
+
+.post .highlight td {
+  background: transparent;
+}
