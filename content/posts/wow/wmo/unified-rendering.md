@@ -128,6 +128,7 @@ batches are handled together in one branch, while `trans` batches are handled se
 {{< highlight c >}}
 
 void CMapObj::RenderGroupUnified(CMapObjGroup* group, uint32_t frustumCount) {
+
     // ... snip ...
 
     for (int batchIdx = 0; batchIdx < group->batchCount; batchIdx++) {
@@ -148,6 +149,7 @@ void CMapObj::RenderGroupUnified(CMapObjGroup* group, uint32_t frustumCount) {
     }
 
     // ... snip ...
+
 }
 
 {{< /highlight >}}
@@ -183,8 +185,8 @@ as either `SMOGroup::EXTERIOR` (`0x8`) or `SMOGroup::EXTERIOR_LIT` (`0x40`).
 
 {{< highlight c >}}
 
-// SMOGroup::EXTERIOR      0x8
-// SMOGroup::EXTERIOR_LIT  0x40
+// SMOGroup::EXTERIOR (0x8)
+// SMOGroup::EXTERIOR_LIT (0x40)
 if (group->flags & (SMOGroup::EXTERIOR | SMOGroup::EXTERIOR_LIT)) {
 
     // Exterior / Exterior Lit Groups
@@ -192,7 +194,7 @@ if (group->flags & (SMOGroup::EXTERIOR | SMOGroup::EXTERIOR_LIT)) {
     int32_t lightingMode;
 
     // Choose the lighting mode
-    // - F_UNLIT  0x1
+    // F_UNLIT (0x1)
     if (material->flags & F_UNLIT) {
 
         // Unlit (0)
@@ -229,8 +231,8 @@ groups (ie. groups not flagged as `SMOGroup::EXTERIOR` or `SMOGroup::EXTERIOR_LI
 
 {{< highlight c >}}
 
-// SMOGroup::EXTERIOR      0x8
-// SMOGroup::EXTERIOR_LIT  0x40
+// SMOGroup::EXTERIOR (0x8)
+// SMOGroup::EXTERIOR_LIT (0x40)
 if (group->flags & (SMOGroup::EXTERIOR | SMOGroup::EXTERIOR_LIT)) {
 
     // Exterior / Exterior Lit Groups (see above section)
@@ -242,7 +244,7 @@ if (group->flags & (SMOGroup::EXTERIOR | SMOGroup::EXTERIOR_LIT)) {
     int lightingMode;
 
     // Choose the lighting mode
-    // - F_WINDOW  0x20
+    // F_WINDOW (0x20)
     if (material->flags & F_WINDOW) {
 
         // Window (2)
@@ -286,13 +288,13 @@ CMapObj::SetShadow(0);
 int32_t lightingMode;
 
 // Choose the lighting mode
-// - F_UNLIT   0x1
-// - F_WINDOW  0x20
+// F_UNLIT (0x1)
 if (material->flags & F_UNLIT) {
 
     // Unlit (0)
     lightingMode = 0;
 
+// F_WINDOW (0x20)
 } else if (material->flags & F_WINDOW) {
 
     // Window (2)
@@ -309,10 +311,10 @@ if (material->flags & F_UNLIT) {
 CMapObj::SetLighting(group, lightingMode);
 
 // Set fog mode
-// - F_UNFOGGED  0x2
+// F_UNFOGGED (0x2)
 if (material->flags & F_UNFOGGED) {
 
-    // Disable (0x0)
+    // Disabled (0x0)
     CMapObj::SetFog(0x0);
 
 } else {
@@ -357,6 +359,7 @@ g_theGxDevicePtr->BufRender(&batch1, 1);
 CMapObj::SetLighting(group, 3);
 
 // Set fog mode
+// F_UNFOGGED (0x2)
 if (material->flags & F_UNFOGGED) {
 
     // Disabled (0x0)
